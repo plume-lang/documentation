@@ -16,4 +16,4 @@ RUN bun docs:build
 
 EXPOSE ${SERVER_PORT}
 
-ENTRYPOINT [ "bun", "docs:preview" ]
+ENTRYPOINT [ "bun", "docs:preview", "--port", "3003" ]
