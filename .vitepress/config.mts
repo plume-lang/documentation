@@ -4,7 +4,7 @@ import * as S from 'shiki/types.d.mts';
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Plume Documentation",
-  description: "A VitePress Site",
+  description: "Official wiki for installing, learning and developing in Plume",
   markdown: {
     async shikiSetup(shiki) {
       const textmate = await fetch('https://raw.githubusercontent.com/plume-lang/vscode-plume/main/syntaxes/plume.tmLanguage.json');
