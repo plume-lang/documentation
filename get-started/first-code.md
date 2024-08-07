@@ -22,101 +22,97 @@ And then run it:
 node your-program.js
 ```
 
-## Variables and literals
+## Basic syntax
 
-Most basic constructs of a programming language could be seen with elements such as variables and literals. A variable is just a name over a value, a location to store value. A literal is a value itself.
+Plume does not really differs from other programming languages syntactically speaking.
 
-We have four primitive values in Plume:
+- **Conditions** are just `if <expr> <expr> else <expr>`, however, to avoid syntax ambiguites, you may use `if <expr> then <expr> else <expr>` syntax.
+- **Functions** are `fn name(arg: type, ...): type => expr` or `fn name(arg: type, ...): type { <exprs> }`
+- **Anonymous functions** are `fn(arg: type, ...): type => expr` or `fn(arg: type, ...): type { <exprs> }`
+- **Pattern matching** is `switch <expr> { case <pattern> => <expr> ... }` (instead of `=> expr`, you could also use `{ <exprs> }`)
 
-1. Integers: `-1`, `10`, ...
-2. Floatings: `-1.24`, `1.33`, `1.0`, ...
-3. Characters: `'c'`, `'\n'`, ...
-4. Strings: `"Hello world"`, `"My name is Plume"`, ...
+## ADTs (Algebraic Data Types)
 
-And we declare a variable like that:
-
-```plume
-my_variable = 5
-my_string = "test"
-my_number = 125 
-```
-
-We could improve our hello world program, to be more complex unnecessarily, by adding variables:
+An ADT is a way to encode complex data structures without loosing type safety. Here's an example of how you can define a simple ADT in Plume:
 
 ```plume
-message = "Hello world"
-println(message)
+type Option<T> {
+  Some(T),
+  None
+}
 ```
 
-## Conditions
+Then, `Some` can be used as a function and `None` as a variable. 
 
-Now, let's discover one new function to leverage the complexity of our program: `input`. This function just asks the user an entry and returns it. We could use it to make a simple program that greets the user:
+> Internally, Some and None are just functions and variables.
+> The type of Some is `fn<A>(x: A): Option<A>` and the type of None is `Option<A>`
+
+Some and None can be used as a pattern in switch-case expressions:
 
 ```plume
-name = input("What's your name?")
-println("Hello, " + name)
+x = Some(42)
+
+switch x {
+  case Some(y) => println(y)
+  case None => println("None")
+}
 ```
 
-But what if the user doesn't want to give his name? We could add a condition to handle this case:
+## Extension system
+
+The extension system in Plume allows you to define generalized behaviors for your types. Then you can extend these behaviors to your types. Here's an example of how you can define an extension in Plume:
 
 ```plume
-name = input("What's your name?")
-if name == ""
-  println("Hello, stranger!")
-else
-  println("Hello, " + name)
+interface<A> to_string<A> {
+  fn to_string(self: A): str
+}
 ```
 
-## Functions
-
-To make our code more modular and reusable, we could define functions. A function is a block of code that could be called with parameters. Here's how you could define a function in Plume:
+Imagine you want to print an Option datatype, without having to define a custom function with a long name like `print_option`, and with some extra parameters to take the option format into account. You can define an extension for the `Option` type:
 
 ```plume
-fn greet(name) =>
-  if name == "" then
-    "Hello, stranger!"
-  else
-    "Hello, " + name
+extend<A extends to_string> to_string<Option<A>> {
+  fn to_string(self) => switch self {
+    case Some(x) => "Some(" + x.to_string() + ")"
+    case None => "None"
+  }
+}
 ```
 
-And then use it like that:
+Then, you can just use:
 
 ```plume
-name = input("What's your name?")
-println(greet(name))
+println(Some(42).to_string())
 ```
 
-### Recursive functions
-
-A side not on recursive functions, what if we want to write a function that computes the product of numbers from 1 to n? We could write some examples to understand the concept:
+This system provides also a way to express functional dependencies. Functional dependencies are a way to tell the compiler a type is dependent on another type. For instance, we could have written a convertible interface:
 
 ```plume
-x1 = 1
-x2 = 1 * 2
-x3 = 1 * 2 * 3
-x4 = 1 * 2 * 3 * 4
-// ...
+interface<A, B> convertible<A, B> with B => A {
+  fn convert(self: A): B
+}
 ```
 
-As you may have noticed, for each next number, we multiply the previous result by the next number. We could quantify this by a mathematical sequence:
+What this means is that if you have a type `A` and a type `B` and you can convert `A` to `B`, then  `A` must be determined by `B`. This greatly helps the compiler to infer types and resolve seamlessly interface resolution.
 
-```
-u₀ = 1
-uₙ = uₙ₋₁ * n
-```
-
-With Plume, we write it in that way:
+In generics, you can also specify what interfaces you want your generic to implement. For instance, defining a `println` could result in:
 
 ```plume
-fn rec_product(n: int) =>
-  if n == 0 then
-    1
-  else
-    rec_product(n - 1) * n
+fn println<A extends to_string>(x: A) => ffi_println(x.to_string())
 ```
 
-We call that function *factorial*, and we use it like that:
+## Mutable operations
+
+Mutable are a way to express type safely mutable operations. They're a complete type, meaning that `mut int` is not equivalent to `int`. Here's an example of how you can use mutable operations in Plume:
 
 ```plume
-println(rec_product(5)) // 120
+mut x = 42
+
+println(x) // mut 42
+
+x = 43
+
+println(x) // mut 43
 ```
+
+Some useful operations are implemented over mutable type, such as `+=`, `*=`, and so on.
