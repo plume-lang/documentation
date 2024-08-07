@@ -1,0 +1,15 @@
+services:
+  documentation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: plume-documentation
+    ports:
+      - 3003:3003
+    networks:
+      - proxy-net
+
+networks:
+  proxy-net:
+    name: proxy-network
+    external: true
