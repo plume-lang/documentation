@@ -116,3 +116,36 @@ println(x) // mut 43
 ```
 
 Some useful operations are implemented over mutable type, such as `+=`, `*=`, and so on.
+
+## Asynchronous programming
+
+Plume now provides partial asynchronous inference. This means that you can write asynchronous code without having to specify `await` keyword when using asynchronous variable or function.
+
+Here's an example of how you can use asynchronous programming in Plume:
+
+```plume
+require "std:io/file"
+
+fn async_op(file: str) {
+  if does_file_exist(file) { // await call is inferred here
+    append_file(file, "Hello, world!") // here too
+  } else {
+    write_file(file, "Hello, world!") // here too
+  }
+}
+
+async_op("log.txt") // here too
+```
+
+However, sometimes, asynchronous functions are needed but you just have a synchronous function. So to fix these cases, Plume introduce an `async` keyword for function definition:
+
+```plume
+async fn non_async_op() {
+  println("Hello, world!")
+
+  return unit
+}
+
+non_async_op() // await call is inferred here
+```
+
